@@ -76,60 +76,61 @@ class GymService:
             print("❌ Không tìm thấy hội viên phù hợp!")
 
     # ---------- ĐỌC/GHI FILE TXT ----------
-    def save_data(self):
-        with open(self.data_file, "w", encoding="utf-8") as f:
-            f.write("[PEOPLE]\n")
-            for person in self.people.values():
-                t = person.__class__.__name__
-                if isinstance(person, (Member, MemberVIP)):
-                    f.write(f"{t}|{person.code}|{person.name}|{person.email}|{person.phone}|{person.month}\n")
-                elif isinstance(person, Trainer):
-                    f.write(f"{t}|{person.code}|{person.name}|{person.email}|{person.phone}|{person.kinhnghiem}|{person.hours}\n")
-            
-            f.write("[SCHEDULES]\n")
-            for code, info in self.schedules.items():
-                f.write(f"{code}|{info['schedule']}|{info['progress']}\n")
-                
-            f.write("[ATTENDANCE]\n")
-            for date_str, codes in self.attendance.items():
-                codes_str = ",".join(codes)
-                f.write(f"{date_str}|{codes_str}\n")
-
-    def load_data(self):
-        if not os.path.exists(self.data_file):
-            return
+    def export_to_csv(self, filename="attendance_report.csv"):
         try:
-            with open(self.data_file, "r", encoding="utf-8") as f:
-                current_section = None
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write("Mã Hội Viên,Tên Hội Viên,Ngày Đi Tập\n")
+                for p in self.data_list:
+                    if isinstance(p, (Member, MemberVIP)):
+                        for date in p.attendance:
+                            f.write(f"{p.code},{p.name},{date}\n")
+            print(f"📊 Đã xuất file CSV thành công: {filename}")
+        except Exception as e:
+            print("Lỗi khi ghi file CSV:", e)
+
+    # ------------------ HÀM LOAD FILE TXT GIỐNG BÀI ĐÃ HỌC ------------------
+    def load_from_txt(self, filename="gym_data.txt"):
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
-                    if not line: continue
-                    if line in ["[PEOPLE]", "[SCHEDULES]", "[ATTENDANCE]"]:
-                        current_section = line
+                    if not line: # Bỏ qua dòng trống
                         continue
+                    parts = line.split("|") # Tách chuỗi bằng dấu |
+                    loai = parts[0]
+                    
+                    if loai == "Member":
+                        m = Member(parts[1], parts[2], parts[3], parts[4], parts[5])
+                        m.progress = int(parts[6])
+                        if parts[7]: # Nếu chuỗi lưu danh sách ngày không trống
+                            m.attendance = parts[7].split(",") # Tách các ngày bằng dấu phẩy
+                        self.data_list.append(m)
                         
-                    parts = line.split("|")
-                    if current_section == "[PEOPLE]":
-                        p_type = parts[0]
-                        if p_type in ["Member", "MemberVIP"]:
-                            cls = Member if p_type == "Member" else MemberVIP
-                            self.people[parts[1]] = cls(parts[1], parts[2], parts[3], parts[4], int(parts[5]))
-                        elif p_type == "Trainer":
-                            self.people[parts[1]] = Trainer(parts[1], parts[2], parts[3], parts[4], int(parts[5]), int(parts[6]))
-                    elif current_section == "[SCHEDULES]":
-                        self.schedules[parts[0]] = {"schedule": parts[1], "progress": int(parts[2])}
-                    elif current_section == "[ATTENDANCE]":
-                        self.attendance[parts[0]] = parts[1].split(",") if parts[1] else []
-        except Exception as e:
-            print("Lỗi đọc file text:", e)
+                    elif loai == "MemberVIP":
+                        mv = MemberVIP(parts[1], parts[2], parts[3], parts[4], parts[5])
+                        mv.progress = int(parts[6])
+                        if parts[7]:
+                            mv.attendance = parts[7].split(",")
+                        self.data_list.append(mv)
+                        
+                    elif loai == "Trainer":
+                        t = Trainer(parts[1], parts[2], parts[3], parts[4], parts[5], parts[6])
+                        self.data_list.append(t)
+        except FileNotFoundError:
+            # Nếu chạy phần mềm lần đầu chưa có file gym_data.txt thì bỏ qua không lỗi
+            pass
 
-    def export_attendance_report_to_txt(self, filename="attendance_report.txt"):
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write(f"{'Ngày':<12} {'Mã Hội Viên':<12} {'Tên Hội Viên':<22}\n")
-            f.write("-" * 50 + "\n")
-            for date_str, member_list in self.attendance.items():
-                for m_code in member_list:
-                    person = self.people.get(m_code)
-                    name = person.name if person else "Chưa đồng bộ"
-                    f.write(f"{date_str:<12} {m_code:<12} {name:<22}\n")
-        print(f"📊 Đã xuất dữ liệu lịch sử thành công ra file: {filename}")
+    # ------------------ HÀM LƯU FILE TXT TỰ ĐỘNG BÊN NGOÀI ------------------
+    def save_to_txt(self, filename="gym_data.txt"):
+        try:
+            with open(filename, "w", encoding="utf-8") as f:
+                for p in self.data_list:
+                    loai = p.__class__.__name__ # Lấy ra tên Class (Member/MemberVIP/Trainer)
+                    if isinstance(p, (Member, MemberVIP)):
+                        # Nối danh sách các ngày đi tập thành 1 chuỗi bằng dấu phẩy (VD: "2026-07-07,2026-07-08")
+                        dates_str = ",".join(p.attendance) 
+                        f.write(f"{loai}|{p.code}|{p.name}|{p.email}|{p.phone}|{p.month}|{p.progress}|{dates_str}\n")
+                    elif isinstance(p, Trainer):
+                        f.write(f"{loai}|{p.code}|{p.name}|{p.email}|{p.phone}|{p.kinhnghiem}|{p.hours}\n")
+        except Exception as e:
+            print("Lỗi lưu file txt:", e)
