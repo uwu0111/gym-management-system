@@ -29,23 +29,35 @@ class Main:
                     phone = input("Phone: ")
                     if loai == "1":
                         month = int(input("Số tháng đăng ký: "))
-                        self.service.add_person(Member(code, name, email, phone, month))
+                        new_member = Member(code, name, email, phone, month)
+                        # services.py cần 2 thuộc tính này để track_attendance / update_progress / export_to_csv hoạt động
+                        new_member.progress = 0
+                        new_member.attendance = []
+                        self.service.add_person(new_member)
+                        self.service.save_to_txt()
                     elif loai == "2":
                         month = int(input("Số tháng đăng ký VIP: "))
-                        self.service.add_person(MemberVIP(code, name, email, phone, month))
+                        new_member = MemberVIP(code, name, email, phone, month)
+                        new_member.progress = 0
+                        new_member.attendance = []
+                        self.service.add_person(new_member)
+                        self.service.save_to_txt()
                     elif loai == "3":
                         kn = int(input("Số năm kinh nghiệm: "))
                         hours = int(input("Số giờ dạy: "))
                         self.service.add_person(Trainer(code, name, email, phone, kn, hours))
+                        self.service.save_to_txt()
                 case "2":
                     code = input("Code: ")
                     name = input("New Name (Bỏ trống nếu giữ nguyên): ")
                     email = input("New Email (Bỏ trống nếu giữ nguyên): ")
                     phone = input("New Phone (Bỏ trống nếu giữ nguyên): ")
                     self.service.update_person(code, name, email, phone)
+                    self.service.save_to_txt()
                 case "3":
                     code = input("Code: ")
                     self.service.delete_person(code)
+                    self.service.save_to_txt()
                 case "4":
                     print("\n--- List Members ---")
                     for p in self.service.data_list:
@@ -71,27 +83,50 @@ class Main:
                     code = input("Mã hội viên: ")
                     date_str = input("Ngày đi tập (YYYY-MM-DD): ")
                     self.service.track_attendance(code, date_str)
+                    self.service.save_to_txt()
                 case "2":
                     code = input("Mã hội viên: ")
                     progress = int(input("Tiến độ mới (0-100): "))
                     self.service.update_progress(code, progress)
+                    self.service.save_to_txt()
                 case "3":
                     break
 
     def memberMenu(self):
+        code = input("Nhập mã hội viên của bạn: ")
+        person = self.service.people.get(code)
+        if not person or isinstance(person, Trainer):
+            print("❌ Không tìm thấy hội viên với mã này!")
+            return
+ 
         while True:
-            print("\nMember Menu:")
-            print("1. View Progress")
-            print("2. Exit")
+            print(f"\nMember Menu ({person.name}):")
+            print("1. View My Info")
+            print("2. Check-in (Điểm danh)")
+            print("3. View My Progress")
+            print("4. View My Attendance Percentage")
+            print("5. Exit")
             choice = input("Enter your choice: ")
-            
-            if choice == "1":
-                code = input("Nhập mã hội viên của bạn: ")
-                for p in self.service.data_list:
-                    if p.code == code and isinstance(p, (Member, MemberVIP)):
-                        print(f"Hội viên: {p.name} | Tiến độ tập luyện: {p.progress}%")
-            elif choice == "2":
-                break
+ 
+            match choice:
+                case "1":
+                    print(person)
+                    print("Trạng thái:", self.service.get_membership_status(code))
+                case "2":
+                    self.service.check_attendance(code)
+                case "3":
+                    info = self.service.schedules.get(code)
+                    if info:
+                        print(f"Lịch tập: {info['schedule']}  -  Tiến độ: {info['progress']}%")
+                    else:
+                        print("Bạn chưa được gán lịch tập.")
+                case "4":
+                    percent = self.service.calculate_member_attendance_percentage(code)
+                    print(f"Tỷ lệ đi tập của bạn: {percent}%")
+                case "5":
+                    break
+                case _:
+                    print("Lựa chọn không hợp lệ, vui lòng chọn lại.")
 
     def run(self):
         while True:
@@ -110,6 +145,7 @@ class Main:
                 case "3":
                     self.memberMenu()
                 case "4":
+                    self.service.save_to_txt()
                     print("Goodbye!")
                     break
 
