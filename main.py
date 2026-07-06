@@ -55,9 +55,14 @@ class Main:
         if not self.service.people:
             print("Danh sách rỗng!")
             return
-        print("\nDanh sách hội viên & huấn luyện viên:")
+        print("\n" + "="*120)
+        print("DANH SÁCH HỘI VIÊN & HUẤN LUYỆN VIÊN".center(120))
+        print("="*120)
+        print(f"{'Mã':<8} {'Họ và tên':<22} {'Email':<25} {'Số ĐT':<14} {'Thông tin thanh toán / Lương & Ghi chú'}")
+        print("-" * 120)
         for person in self.service.people.values():
             print(person)
+        print("="*120)
 
     def updatePersonMenu(self):
         code = input("Nhập code cần cập nhật: ")
@@ -144,9 +149,12 @@ class Main:
         if not top_members:
             print("Chưa có dữ liệu lịch tập!")
             return
-        print("\nTop hội viên tiến độ cao nhất:")
+        print("\n" + "-"*50)
+        print(f"{'Mã':<8} {'Họ và tên':<22} {'Tiến độ (Progress)'}")
+        print("-"*50)
         for item in top_members:
-            print(f"{item['code']}  {item['name']}  Progress: {item['progress']}%")
+            print(f"{item['code']:<8} {item['name']:<22} {item['progress']}%")
+        print("-"*50)
 
     def exportCsvMenu(self):
         filename = input("Nhập tên file xuất (Enter để dùng mặc định 'attendance_report.csv'): ")

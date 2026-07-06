@@ -6,7 +6,7 @@ class Person(ABC):
         self.email = email
         self.phone = phone
     def __str__(self):
-        return f"{self.code}  {self.name}  {self.email}  {self.phone}  Salary: {self.getSalary()}"
+        return f"{self.code:<8} {self.name:<20} {self.email:<22} {self.phone:<12} Payment: {self.getSalary():<12,.0f}"
     @abstractmethod
     def getSalary(self):
         pass
@@ -34,4 +34,4 @@ class Trainer(Person):
     def getSalary(self):
         return self.kinhnghiem * 2000000 + self.hours * 70000
     def __str__(self):
-        return f"{super().__str__()}  Kinh nghiệm: {self.kinhnghiem}  Hours: {self.hours}"
+        return f"{super().__str__()}  Kinh nghiệm: {self.kinhnghiem:<3}  Hours: {self.hours}"
