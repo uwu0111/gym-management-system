@@ -43,10 +43,25 @@ class Main:
             print("Lựa chọn không hợp lệ!")
             return None
 
+<<<<<<< HEAD
     def addMember(self):
         person = self.inputPerson()
         if person:
             self.service.add_person(person)
+=======
+    def showAllPeople(self):
+        if not self.service.people:
+            print("Danh sách rỗng!")
+            return
+        print("\n" + "="*120)
+        print("DANH SÁCH HỘI VIÊN & HUẤN LUYỆN VIÊN".center(120))
+        print("="*120)
+        print(f"{'Mã':<8} {'Họ và tên':<22} {'Email':<25} {'Số ĐT':<14} {'Thông tin thanh toán / Lương & Ghi chú'}")
+        print("-" * 120)
+        for person in self.service.people.values():
+            print(person)
+        print("="*120)
+>>>>>>> 8b470f35e10dd941d11947905cb91d524e6a0073
 
     def updateMember(self):
         code = input("Nhập code cần cập nhật: ")
@@ -147,6 +162,15 @@ class Main:
         if code not in self.service.people or isinstance(self.service.people[code], Trainer):
             print("❌ Mã hội viên không hợp lệ!")
             return
+<<<<<<< HEAD
+=======
+        print("\n" + "-"*50)
+        print(f"{'Mã':<8} {'Họ và tên':<22} {'Tiến độ (Progress)'}")
+        print("-"*50)
+        for item in top_members:
+            print(f"{item['code']:<8} {item['name']:<22} {item['progress']}%")
+        print("-"*50)
+>>>>>>> 8b470f35e10dd941d11947905cb91d524e6a0073
 
         # Nếu hội viên chưa có lịch tập thì gán lịch tập mới trước
         if code not in self.service.schedules:
