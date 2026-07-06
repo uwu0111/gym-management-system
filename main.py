@@ -1,122 +1,14 @@
 from models import Member, MemberVIP, Trainer
 from services import GymService
 
-
 class Main:
     def __init__(self):
         self.service = GymService()
+        # Nạp dữ liệu mẫu ban đầu để chạy thử chương trình nhanh chóng
+        self.service.add_person(Member("G01", "Nguyen Hoang Nam", "nam@gmail.com", "09111", 2))
+        self.service.add_person(MemberVIP("G04", "Pham Minh Duc", "duc.vip@gmail.com", "09221", 5))
+        self.service.add_person(Trainer("PT01", "Nguyen Van Huynh", "huynh@gmail.com", "09331", 2, 25))
         self.run()
-
-    # ---------- Các hàm nhập liệu có kiểm tra hợp lệ ----------
-    def inputInt(self, message):
-        while True:
-            value_str = input(message)
-            try:
-                return int(value_str)
-            except ValueError:
-                print(f"'{value_str}' không hợp lệ! Vui lòng nhập số nguyên.")
-
-    # ================= ADMIN =================
-    def inputPerson(self):
-        print("\nChọn loại đối tượng cần thêm:")
-        print("1. Member")
-        print("2. Member VIP")
-        print("3. Trainer")
-        loai = input("Lựa chọn: ")
-
-        code = input("Code: ")
-        name = input("Name: ")
-        email = input("Email: ")
-        phone = input("Phone: ")
-
-        if loai == "1":
-            month = self.inputInt("Số tháng đăng ký: ")
-            return Member(code, name, email, phone, month)
-        elif loai == "2":
-            month = self.inputInt("Số tháng đăng ký: ")
-            return MemberVIP(code, name, email, phone, month)
-        elif loai == "3":
-            kinhnghiem = self.inputInt("Số năm kinh nghiệm: ")
-            hours = self.inputInt("Số giờ dạy: ")
-            return Trainer(code, name, email, phone, kinhnghiem, hours)
-        else:
-            print("Lựa chọn không hợp lệ!")
-            return None
-
-<<<<<<< HEAD
-    def addMember(self):
-        person = self.inputPerson()
-        if person:
-            self.service.add_person(person)
-=======
-    def showAllPeople(self):
-        if not self.service.people:
-            print("Danh sách rỗng!")
-            return
-        print("\n" + "="*120)
-        print("DANH SÁCH HỘI VIÊN & HUẤN LUYỆN VIÊN".center(120))
-        print("="*120)
-        print(f"{'Mã':<8} {'Họ và tên':<22} {'Email':<25} {'Số ĐT':<14} {'Thông tin thanh toán / Lương & Ghi chú'}")
-        print("-" * 120)
-        for person in self.service.people.values():
-            print(person)
-        print("="*120)
->>>>>>> 8b470f35e10dd941d11947905cb91d524e6a0073
-
-    def updateMember(self):
-        code = input("Nhập code cần cập nhật: ")
-        if code not in self.service.people:
-            print("❌ Không tìm thấy mã này!")
-            return
-
-        person = self.service.people[code]
-        kwargs = {}
-
-        name = input(f"Tên mới (Enter để giữ '{person.name}'): ")
-        if name: kwargs["name"] = name
-        email = input(f"Email mới (Enter để giữ '{person.email}'): ")
-        if email: kwargs["email"] = email
-        phone = input(f"Phone mới (Enter để giữ '{person.phone}'): ")
-        if phone: kwargs["phone"] = phone
-
-        if isinstance(person, (Member, MemberVIP)):
-            month_str = input("Số tháng mới (Enter để bỏ qua): ")
-            if month_str:
-                kwargs["month"] = int(month_str)
-        elif isinstance(person, Trainer):
-            kn_str = input("Kinh nghiệm mới (Enter để bỏ qua): ")
-            if kn_str:
-                kwargs["kinhnghiem"] = int(kn_str)
-            hours_str = input("Số giờ mới (Enter để bỏ qua): ")
-            if hours_str:
-                kwargs["hours"] = int(hours_str)
-
-        self.service.update_person(code, **kwargs)
-
-    def deleteMember(self):
-        code = input("Nhập code cần xóa: ")
-        self.service.delete_person(code)
-
-    def listMembers(self):
-        if not self.service.people:
-            print("Danh sách rỗng!")
-            return
-        print("\nDanh sách hội viên & huấn luyện viên:")
-        for person in self.service.people.values():
-            print(person)
-
-    def viewRevenue(self):
-        total = self.service.calculate_total_revenue()
-        result = self.service.count_membership_status()
-        print(f"Tổng doanh thu: {total:,.0f} VNĐ")
-        print(f"Số hội viên Active: {result['Active']}  -  Số hội viên Expired: {result['Expired']}")
-
-    def exportCSV(self):
-        filename = input("Nhập tên file xuất (Enter để dùng mặc định 'attendance_report.csv'): ")
-        if filename:
-            self.service.export_attendance_report_to_csv(filename)
-        else:
-            self.service.export_attendance_report_to_csv()
 
     def adminMenu(self):
         while True:
@@ -132,53 +24,42 @@ class Main:
 
             match choice:
                 case "1":
-                    self.addMember()
+                    print("\n--- Add Member ---")
+                    loai = input("Chọn loại (1: Thường, 2: VIP, 3: Trainer): ")
+                    code = input("Code: ")
+                    name = input("Name: ")
+                    email = input("Email: ")
+                    phone = input("Phone: ")
+                    if loai == "1":
+                        month = int(input("Số tháng đăng ký: "))
+                        self.service.add_person(Member(code, name, email, phone, month))
+                    elif loai == "2":
+                        month = int(input("Số tháng đăng ký VIP: "))
+                        self.service.add_person(MemberVIP(code, name, email, phone, month))
+                    elif loai == "3":
+                        kn = int(input("Số năm kinh nghiệm: "))
+                        hours = int(input("Số giờ dạy: "))
+                        self.service.add_person(Trainer(code, name, email, phone, kn, hours))
                 case "2":
-                    self.updateMember()
+                    code = input("Code: ")
+                    name = input("New Name (Bỏ trống nếu giữ nguyên): ")
+                    email = input("New Email (Bỏ trống nếu giữ nguyên): ")
+                    phone = input("New Phone (Bỏ trống nếu giữ nguyên): ")
+                    self.service.update_person(code, name, email, phone)
                 case "3":
-                    self.deleteMember()
+                    code = input("Code: ")
+                    self.service.delete_person(code)
                 case "4":
-                    self.listMembers()
+                    print("\n--- List Members ---")
+                    for p in self.service.data_list:
+                        print(p)
                 case "5":
-                    self.viewRevenue()
+                    rev = self.service.calculate_revenue()
+                    print(f"Revenue: {rev} VNĐ")
                 case "6":
-                    self.exportCSV()
+                    self.service.export_to_csv()
                 case "7":
                     break
-                case _:
-                    print("Lựa chọn không hợp lệ, vui lòng chọn lại.")
-
-    # ================= TRAINER =================
-    def trackAttendance(self):
-        code = input("Nhập code hội viên: ")
-        date_str = input("Nhập ngày (YYYY-MM-DD, Enter để lấy ngày hôm nay): ")
-        if date_str:
-            self.service.check_attendance(code, date_str)
-        else:
-            self.service.check_attendance(code)
-
-    def updateMemberProgress(self):
-        code = input("Nhập code hội viên: ")
-        if code not in self.service.people or isinstance(self.service.people[code], Trainer):
-            print("❌ Mã hội viên không hợp lệ!")
-            return
-<<<<<<< HEAD
-=======
-        print("\n" + "-"*50)
-        print(f"{'Mã':<8} {'Họ và tên':<22} {'Tiến độ (Progress)'}")
-        print("-"*50)
-        for item in top_members:
-            print(f"{item['code']:<8} {item['name']:<22} {item['progress']}%")
-        print("-"*50)
->>>>>>> 8b470f35e10dd941d11947905cb91d524e6a0073
-
-        # Nếu hội viên chưa có lịch tập thì gán lịch tập mới trước
-        if code not in self.service.schedules:
-            schedule_text = input("Hội viên chưa có lịch tập, nhập nội dung lịch tập mới: ")
-            self.service.assign_schedule(code, schedule_text)
-
-        progress = self.inputInt("Nhập tiến độ mới (0-100): ")
-        self.service.update_progress(code, progress)
 
     def trainerMenu(self):
         while True:
@@ -190,52 +71,31 @@ class Main:
 
             match choice:
                 case "1":
-                    self.trackAttendance()
+                    code = input("Mã hội viên: ")
+                    date_str = input("Ngày đi tập (YYYY-MM-DD): ")
+                    self.service.track_attendance(code, date_str)
                 case "2":
-                    self.updateMemberProgress()
+                    code = input("Mã hội viên: ")
+                    progress = int(input("Tiến độ mới (0-100): "))
+                    self.service.update_progress(code, progress)
                 case "3":
                     break
-                case _:
-                    print("Lựa chọn không hợp lệ, vui lòng chọn lại.")
 
-    # ================= MEMBER =================
     def memberMenu(self):
-        code = input("Nhập mã hội viên của bạn: ")
-        person = self.service.people.get(code)
-        if not person or isinstance(person, Trainer):
-            print("❌ Không tìm thấy hội viên với mã này!")
-            return
-
         while True:
-            print(f"\nMember Menu ({person.name}):")
-            print("1. View My Info")
-            print("2. Check-in (Điểm danh)")
-            print("3. View My Progress")
-            print("4. View My Attendance Percentage")
-            print("5. Exit")
+            print("\nMember Menu:")
+            print("1. View Progress")
+            print("2. Exit")
             choice = input("Enter your choice: ")
+            
+            if choice == "1":
+                code = input("Nhập mã hội viên của bạn: ")
+                for p in self.service.data_list:
+                    if p.code == code and isinstance(p, (Member, MemberVIP)):
+                        print(f"Hội viên: {p.name} | Tiến độ tập luyện: {p.progress}%")
+            elif choice == "2":
+                break
 
-            match choice:
-                case "1":
-                    print(person)
-                    print("Trạng thái:", self.service.get_membership_status(code))
-                case "2":
-                    self.service.check_attendance(code)
-                case "3":
-                    info = self.service.schedules.get(code)
-                    if info:
-                        print(f"Lịch tập: {info['schedule']}  -  Tiến độ: {info['progress']}%")
-                    else:
-                        print("Bạn chưa được gán lịch tập.")
-                case "4":
-                    percent = self.service.calculate_member_attendance_percentage(code)
-                    print(f"Tỷ lệ đi tập của bạn: {percent}%")
-                case "5":
-                    break
-                case _:
-                    print("Lựa chọn không hợp lệ, vui lòng chọn lại.")
-
-    # ================= MAIN MENU =================
     def run(self):
         while True:
             print("\nGym Management System")
@@ -253,11 +113,8 @@ class Main:
                 case "3":
                     self.memberMenu()
                 case "4":
-                    print("Thoát chương trình.")
+                    print("Goodbye!")
                     break
-                case _:
-                    print("Lựa chọn không hợp lệ, vui lòng chọn lại.")
-
 
 if __name__ == "__main__":
     Main()
