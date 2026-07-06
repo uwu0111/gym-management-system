@@ -3,11 +3,8 @@ from services import GymService
 
 class Main:
     def __init__(self):
+        # Service khi khởi tạo sẽ tự động gọi hàm load_from_txt() để lấy toàn bộ dữ liệu từ bên ngoài
         self.service = GymService()
-        # Nạp dữ liệu mẫu ban đầu để chạy thử chương trình nhanh chóng
-        self.service.add_person(Member("G01", "Nguyen Hoang Nam", "nam@gmail.com", "09111", 2))
-        self.service.add_person(MemberVIP("G04", "Pham Minh Duc", "duc.vip@gmail.com", "09221", 5))
-        self.service.add_person(Trainer("PT01", "Nguyen Van Huynh", "huynh@gmail.com", "09331", 2, 25))
         self.run()
 
     def adminMenu(self):

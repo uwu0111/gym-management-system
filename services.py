@@ -3,12 +3,10 @@ from datetime import datetime
 from models import Member, MemberVIP, Trainer
 
 class GymService:
-    def __init__(self, data_file="gym_data.txt"):
-        self.data_file = data_file
-        self.people = {}       
-        self.schedules = {}    
-        self.attendance = {}   
-        self.load_data()
+    def __init__(self):
+        self.data_list = [] 
+        # Tự động nạp dữ liệu từ file txt lên khi phần mềm khởi chạy
+        self.load_from_txt()
 
     # 1. Thêm thành viên
     def add_person(self, person_obj):
