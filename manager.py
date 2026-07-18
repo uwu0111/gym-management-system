@@ -38,8 +38,8 @@ class GymManager:
                 for line in f:
                     parts = line.strip().split("|")
                     if len(parts) == 5:
-                        code, name, email, phone, hours = parts
-                        self.data_list.append(Trainer(code, name, email, phone, hours))
+                        code, name, email, phone, experience = parts  # Thay đổi tại đây
+                        self.data_list.append(Trainer(code, name, email, phone, experience))
 
     def save_all_files(self):
         f_member = open(self.get_file_path("member_data.txt"), "w", encoding="utf-8")
@@ -52,7 +52,7 @@ class GymManager:
             elif isinstance(p, Member):
                 f_member.write(f"{p.code}|{p.name}|{p.email}|{p.phone}|{p.month}\n")
             elif isinstance(p, Trainer):
-                f_trainer.write(f"{p.code}|{p.name}|{p.email}|{p.phone}|{p.hours}\n")
+                f_trainer.write(f"{p.code}|{p.name}|{p.email}|{p.phone}|{p.experience}\n")  # Thay đổi tại đây
 
         f_member.close()
         f_vip.close()
@@ -64,11 +64,8 @@ class GymManager:
                 return p
         return None
 
-    # HÀM SINH MÃ TỰ ĐỘNG TĂNG TỊNH TIẾN THÔNG MINH
     def get_max_index(self, prefix, register_service_accounts):
         max_idx = 0
-        
-        # Bước 1: Quét trong danh sách hồ sơ gym đã duyệt
         for p in self.data_list:
             if p.code.startswith(prefix):
                 try:
@@ -78,7 +75,6 @@ class GymManager:
                 except ValueError:
                     pass
                     
-        # Bước 2: Quét tiếp trong tài khoản chờ duyệt bên file đăng ký tài khoản
         for data in register_service_accounts.values():
             if data["code"].startswith(prefix):
                 try:
@@ -94,7 +90,7 @@ class GymManager:
         if role == "Member":
             new_p = Member(code, name, email, phone, month=1)
         elif role == "Trainer":
-            new_p = Trainer(code, name, email, phone, hours=0)
+            new_p = Trainer(code, name, email, phone, experience=1)  # Khởi tạo mặc định 1 năm kinh nghiệm
         else:
             return
 

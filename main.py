@@ -38,6 +38,9 @@ class Main:
                 break
 
             role_name = "VIP MEMBER" if profile.__class__.__name__ == "MemberVIP" else "MEMBER THƯỜNG"
+            if profile.__class__.__name__ == "Trainer":
+                role_name = "TRAINER (HLV)"
+
             print(f"\n=== TRANG CÁ NHÂN ({profile.name} - {profile.code}) ===")
             print(f"Hạng thành viên: {role_name}")
             print("1. Xem chi tiết hồ sơ tập luyện")
@@ -52,8 +55,8 @@ class Main:
                 print(f"🔹 Email liên hệ: {profile.email}")
                 if hasattr(profile, "month"):
                     print(f"🔹 Gói đăng ký: {profile.month} tháng")
-                elif hasattr(profile, "hours"):
-                    print(f"🔹 Số giờ dạy: {profile.hours} giờ")
+                elif hasattr(profile, "experience"):  # Sửa đổi tại đây
+                    print(f"🔹 Kinh nghiệm: {profile.experience} năm")
             elif choice == "2":
                 break
 
