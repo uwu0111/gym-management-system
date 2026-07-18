@@ -1,17 +1,26 @@
+# register.py
 import os
 
 class RegisterService:
     def __init__(self, gym_manager):
-        self.accounts = {}      # Lưu tài khoản Member, Trainer
-        self.admin_accounts = {} # Lưu tài khoản Admin riêng biệt
+        self.current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.accounts = {}
+        self.admin_accounts = {}
         self.gym_manager = gym_manager
         self.load_all_accounts()
 
-    # ĐỌC SONG SONG CẢ FILE ADMIN VÀ FILE HỘI VIÊN
+    def get_file_path(self, file_name):
+        return os.path.join(self.current_dir, file_name)
+
+    # ĐỌC SONG SONG FILE ADMIN VÀ FILE THÀNH VIÊN
     def load_all_accounts(self):
+        self.admin_accounts = {}
+        self.accounts = {}
+
         # 1. Đọc file admin_data.txt
-        if os.path.exists("admin_data.txt"):
-            with open("admin_data.txt", "r", encoding="utf-8") as f:
+        admin_path = self.get_file_path("admin_data.txt")
+        if os.path.exists(admin_path):
+            with open(admin_path, "r", encoding="utf-8") as f:
                 for line in f:
                     parts = line.strip().split("|")
                     if len(parts) == 5:
@@ -21,18 +30,18 @@ class RegisterService:
                             "name": name, "email": email, "phone": phone
                         }
         else:
-            # Nếu chưa có file admin, tạo sẵn một tài khoản mặc định
+            # Tạo sẵn nếu chưa có file admin
             self.admin_accounts["admin"] = {
                 "password": "admin", "role": "Admin", "code": "ADMIN",
-                "name": "Admin", "email": "admin@gym.com", "phone": "000"
+                "name": "Admin Tối Cao", "email": "admin@gym.com", "phone": "000"
             }
-            with open("admin_data.txt", "w", encoding="utf-8") as f:
+            with open(admin_path, "w", encoding="utf-8") as f:
                 f.write("admin|admin|Admin Tối Cao|admin@gym.com|000\n")
 
-        # 2. Đọc file register_data.txt (Member và Trainer)
-        self.accounts = {}
-        if os.path.exists("register_data.txt"):
-            with open("register_data.txt", "r", encoding="utf-8") as f:
+        # 2. Đọc file register_data.txt
+        reg_path = self.get_file_path("register_data.txt")
+        if os.path.exists(reg_path):
+            with open(reg_path, "r", encoding="utf-8") as f:
                 for line in f:
                     parts = line.strip().split("|")
                     if len(parts) == 8:
@@ -43,16 +52,15 @@ class RegisterService:
                         }
 
     def save_accounts(self):
-        with open("register_data.txt", "w", encoding="utf-8") as f:
+        with open(self.get_file_path("register_data.txt"), "w", encoding="utf-8") as f:
             for usr, data in self.accounts.items():
                 f.write(f"{usr}|{data['password']}|{data['role']}|{data['status']}|{data['code']}|{data['name']}|{data['email']}|{data['phone']}\n")
 
-    # ĐĂNG KÝ (Chỉ cho đăng ký Member thường hoặc Trainer)
+    # NGƯỜI DÙNG TỰ ĐĂNG KÝ (TẠO CODE CHỜ DUYỆT)
     def register_account(self):
         print("\n--- ĐĂNG KÝ TÀI KHOẢN MỚI ---")
         username = input("Nhập Username: ").strip()
         
-        # Kiểm tra trùng tên ở cả danh sách admin lẫn hội viên
         if username in self.accounts or username in self.admin_accounts:
             print("❌ Tên đăng nhập này đã tồn tại!")
             return
@@ -82,40 +90,38 @@ class RegisterService:
             "code": code, "name": name, "email": email, "phone": phone
         }
         self.save_accounts()
-        print(f"🎉 Đăng ký thành công! Mã số cấp tạm thời: {code}. Đang chờ Admin phê duyệt.")
+        print(f"🎉 Đăng ký hoàn tất! Mã số của bạn: {code}. Vui lòng đợi Admin phê duyệt.")
 
-    # ĐĂNG NHẬP (Kiểm tra file Admin trước, nếu không có thì kiểm tra file Register)
+    # ĐĂNG NHẬP KIỂM TRA ĐA TỆP
     def login(self):
         print("\n--- ĐĂNG NHẬP HỆ THỐNG ---")
         username = input("Username: ").strip()
         password = input("Password: ").strip()
 
-        # Kiểm tra xem có phải Admin không
+        # Kiểm tra dữ liệu bộ nhớ Admin trước
         if username in self.admin_accounts and self.admin_accounts[username]["password"] == password:
-            print(f"🎉 Đăng nhập thành công quyền ADMIN!")
             return username, "Admin", "ADMIN"
 
-        # Kiểm tra tài khoản người dùng thường
+        # Kiểm tra dữ liệu bộ nhớ Hội viên/Trainer sau
         if username in self.accounts and self.accounts[username]["password"] == password:
             acc = self.accounts[username]
             if acc["status"] == "Pending":
-                print("❌ Tài khoản đang chờ duyệt, vui lòng quay lại sau!")
+                print("❌ Tài khoản này chưa được duyệt! Vui lòng liên hệ Admin.")
                 return None, None, None
-            print(f"🎉 Đăng nhập thành công! Chào mừng {acc['name']}.")
             return username, acc["role"], acc["code"]
         
-        print("❌ Sai tài khoản hoặc mật khẩu!")
+        print("❌ Tài khoản hoặc mật khẩu không chính xác!")
         return None, None, None
 
-    # ADMIN PHÊ DUYỆT TÀI KHOẢN
+    # ADMIN DUYỆT
     def approve_accounts_menu(self):
         while True:
             pending_list = [usr for usr, data in self.accounts.items() if data["status"] == "Pending"]
             if not pending_list:
-                print("\nℹ️ Không có tài khoản nào đang chờ phê duyệt.")
+                print("\nℹ️ Không có yêu cầu nào đang chờ duyệt.")
                 break
 
-            print("\n--- DANH SÁCH CHỜ PHÊ DUYỆT ---")
+            print("\n--- DANH SÁCH TÀI KHOẢN CHỜ DUYỆT ---")
             for idx, usr in enumerate(pending_list, 1):
                 acc = self.accounts[usr]
                 print(f"{idx}. Tài khoản: {usr} | Tên: {acc['name']} | Vai trò: {acc['role']} | Mã: {acc['code']}")
@@ -135,20 +141,22 @@ class RegisterService:
                         acc["status"] = "Approved"
                         self.save_accounts()
                         
-                        # Gọi quản lý Gym ghi thông tin vào file chức năng tương ứng
+                        # Đồng bộ sinh dữ liệu sang file quản lý tương ứng
                         self.gym_manager.create_profile(
                             acc["role"], acc["code"], acc["name"], acc["email"], acc["phone"]
                         )
-                        print(f"✅ Đã duyệt tài khoản '{target_user}' thành công!")
+                        print(f"✅ Đã kích hoạt tài khoản '{target_user}'!")
+                else:
+                    print("❌ Số thứ tự nằm ngoài danh sách!")
             except:
-                print("❌ Lựa chọn không hợp lệ!")
+                print("❌ Vui lòng nhập một số hợp lệ!")
 
-    # ĐỒNG BỘ MÃ MỚI KHI NÂNG CẤP VIP
+    # ĐỒNG BỘ MÃ KHI HỘI VIÊN ĐƯỢC LÊN VIP
     def sync_upgrade(self, old_code, new_code):
         for usr, data in self.accounts.items():
             if data["code"] == old_code:
                 data["code"] = new_code
                 data["role"] = "MemberVIP"
                 self.save_accounts()
-                print(f"🔄 Đã đồng bộ tài khoản '{usr}' sang mã VIP mới: {new_code}")
+                print(f"🔄 Đã đồng bộ thông tin đăng nhập của '{usr}' sang mã VIP mới: {new_code}")
                 return

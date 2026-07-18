@@ -1,3 +1,4 @@
+# main.py
 from manager import GymManager
 from register import RegisterService
 
@@ -10,64 +11,66 @@ class Main:
     def admin_menu(self):
         while True:
             print("\n=== TRANG QUẢN TRỊ (ADMIN) ===")
-            print("1. Phê duyệt tài khoản đăng ký mới (Duyệt xong tự tạo hồ sơ)")
-            print("2. Xem danh sách hồ sơ Gym")
-            print("3. Nâng cấp Member thường lên VIP")
+            print("1. Phê duyệt tài khoản đăng ký")
+            print("2. Xem toàn bộ hồ sơ phòng Gym")
+            print("3. Nâng cấp Member lên VIP")
             print("4. Đăng xuất")
-            choice = input("Chọn chức năng: ").strip()
+            choice = input("Lựa chọn: ").strip()
 
             if choice == "1":
-                self.register.approve_accounts_menu() # Duyệt tài khoản chờ
+                self.register.approve_accounts_menu()
             elif choice == "2":
-                self.manager.list_members() # Xem hồ sơ
+                self.manager.list_members()
             elif choice == "3":
-                old_code = input("Nhập mã Member thường cần nâng cấp (VD: M01): ").strip()
+                old_code = input("Nhập mã Member thường (Ví dụ: M01): ").strip()
                 new_code = self.manager.upgrade_member_to_vip(old_code)
                 if new_code:
-                    self.register.sync_upgrade(old_code, new_code) # Đồng bộ đổi mã tài khoản
+                    self.register.sync_upgrade(old_code, new_code)
             elif choice == "4":
+                print("Đã đăng xuất quyền Admin.")
                 break
 
     def member_menu(self, code):
         while True:
             profile = self.manager.find_by_code(code)
             if not profile:
-                print("❌ Không tìm thấy hồ sơ liên kết!")
+                print("❌ Lỗi dữ liệu liên kết hồ sơ!")
                 break
 
-            role_title = "VIP MEMBER" if profile.__class__.__name__ == "MemberVIP" else "MEMBER"
-            print(f"\n=== TRANG HỘI VIÊN ({profile.name} - {profile.code}) ===")
-            print(f"Hạng thẻ hiện tại: {role_title}")
-            print("1. Xem thông tin chi tiết")
+            role_name = "VIP MEMBER" if profile.__class__.__name__ == "MemberVIP" else "MEMBER THƯỜNG"
+            print(f"\n=== TRANG CÁ NHÂN ({profile.name} - {profile.code}) ===")
+            print(f"Hạng thẻ: {role_name}")
+            print("1. Xem chi tiết hồ sơ tập luyện")
             print("2. Đăng xuất")
-            choice = input("Chọn: ").strip()
+            choice = input("Lựa chọn: ").strip()
 
             if choice == "1":
-                print(f"\n📍 Mã số: {profile.code}")
-                print(f"📍 Họ tên: {profile.name}")
-                print(f"📍 Email: {profile.email} | SĐT: {profile.phone}")
-                print(f"📍 Thời gian đăng ký: {profile.month} tháng")
+                print(f"\n[HỒ SƠ CÁ NHÂN]")
+                print(f"🔹 Mã số: {profile.code}")
+                print(f"🔹 Họ tên: {profile.name}")
+                print(f"🔹 Liên hệ: {profile.phone} | {profile.email}")
+                print(f"🔹 Gói hạn: {profile.month} tháng")
             elif choice == "2":
                 break
 
     def run(self):
         while True:
-            print("\n=== HỆ THỐNG PHÒNG GYM ===")
+            print("\n=== HỆ THỐNG PHÒNG GYM CHUYÊN NGHIỆP ===")
             print("1. Đăng nhập")
-            print("2. Đăng ký tài khoản mới (Tự cấp mã chờ duyệt)")
-            print("3. Thoát")
-            choice = input("Lựa chọn: ").strip()
+            print("2. Đăng ký tài khoản (Tự cấp mã số)")
+            print("3. Thoát chương trình")
+            choice = input("Chọn chức năng: ").strip()
 
             if choice == "1":
                 usr, role, code = self.register.login()
                 if role == "Admin":
                     self.admin_menu()
-                elif role in ["Member", "MemberVIP"]:
+                elif role in ["Member", "MemberVIP", "Trainer"]:
                     self.member_menu(code)
             elif choice == "2":
                 self.register.register_account()
             elif choice == "3":
-                print("Tạm biệt!")
+                print("Hệ thống đã đóng. Tạm biệt!")
                 break
 
 if __name__ == "__main__":
