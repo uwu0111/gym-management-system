@@ -22,42 +22,46 @@ class Main:
             elif choice == "2":
                 self.manager.list_members()
             elif choice == "3":
-                old_code = input("Nhập mã Member thường (Ví dụ: M01): ").strip()
-                new_code = self.manager.upgrade_member_to_vip(old_code)
+                old_code = input("Nhập mã Member thường cần nâng cấp (Ví dụ: M01): ").strip()
+                new_code = self.manager.upgrade_member_to_vip(old_code, self.register.accounts)
                 if new_code:
                     self.register.sync_upgrade(old_code, new_code)
             elif choice == "4":
-                print("Đã đăng xuất quyền Admin.")
+                print("Đã đăng xuất tài khoản Admin.")
                 break
 
     def member_menu(self, code):
         while True:
             profile = self.manager.find_by_code(code)
             if not profile:
-                print("❌ Lỗi dữ liệu liên kết hồ sơ!")
+                print("❌ Lỗi dữ liệu liên kết hồ sơ phòng tập!")
                 break
 
             role_name = "VIP MEMBER" if profile.__class__.__name__ == "MemberVIP" else "MEMBER THƯỜNG"
             print(f"\n=== TRANG CÁ NHÂN ({profile.name} - {profile.code}) ===")
-            print(f"Hạng thẻ: {role_name}")
+            print(f"Hạng thành viên: {role_name}")
             print("1. Xem chi tiết hồ sơ tập luyện")
             print("2. Đăng xuất")
             choice = input("Lựa chọn: ").strip()
 
             if choice == "1":
-                print(f"\n[HỒ SƠ CÁ NHÂN]")
-                print(f"🔹 Mã số: {profile.code}")
-                print(f"🔹 Họ tên: {profile.name}")
-                print(f"🔹 Liên hệ: {profile.phone} | {profile.email}")
-                print(f"🔹 Gói hạn: {profile.month} tháng")
+                print(f"\n[THÔNG TIN HỒ SƠ]")
+                print(f"🔹 Mã định danh: {profile.code}")
+                print(f"🔹 Họ và tên: {profile.name}")
+                print(f"🔹 Số điện thoại: {profile.phone}")
+                print(f"🔹 Email liên hệ: {profile.email}")
+                if hasattr(profile, "month"):
+                    print(f"🔹 Gói đăng ký: {profile.month} tháng")
+                elif hasattr(profile, "hours"):
+                    print(f"🔹 Số giờ dạy: {profile.hours} giờ")
             elif choice == "2":
                 break
 
     def run(self):
         while True:
             print("\n=== HỆ THỐNG PHÒNG GYM CHUYÊN NGHIỆP ===")
-            print("1. Đăng nhập")
-            print("2. Đăng ký tài khoản (Tự cấp mã số)")
+            print("1. Đăng nhập hệ thống")
+            print("2. Đăng ký tài khoản mới")
             print("3. Thoát chương trình")
             choice = input("Chọn chức năng: ").strip()
 
@@ -70,7 +74,7 @@ class Main:
             elif choice == "2":
                 self.register.register_account()
             elif choice == "3":
-                print("Hệ thống đã đóng. Tạm biệt!")
+                print("Chương trình kết thúc an toàn. Tạm biệt!")
                 break
 
 if __name__ == "__main__":
