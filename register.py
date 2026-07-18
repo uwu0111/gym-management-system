@@ -53,19 +53,16 @@ class RegisterService:
             for usr, data in self.accounts.items():
                 f.write(f"{usr}|{data['password']}|{data['role']}|{data['status']}|{data['code']}|{data['name']}|{data['email']}|{data['phone']}\n")
 
-    # KIỂM TRA TRÙNG LẶP EMAIL HOẶC SỐ ĐIỆN THOẠI TRÊN HỆ THỐNG
-    def check_duplicate(self, email, phone):
-        # 1. Check dữ liệu phân hệ Admin
+    # KIỂM TRA TRÙNG LẶP SỐ ĐIỆN THOẠI TRÊN HỆ THỐNG
+    def is_phone_duplicate(self, phone):
         for adm in self.admin_accounts.values():
-            if adm["email"] == email or adm["phone"] == phone:
+            if adm["phone"] == phone:
                 return True
-        # 2. Check dữ liệu phân hệ Đăng ký tài khoản
         for acc in self.accounts.values():
-            if acc["email"] == email or acc["phone"] == phone:
+            if acc["phone"] == phone:
                 return True
-        # 3. Check dữ liệu gốc bên File Hồ Sơ Gym
         for p in self.gym_manager.data_list:
-            if p.email == email or p.phone == phone:
+            if p.phone == phone:
                 return True
         return False
 
@@ -85,11 +82,29 @@ class RegisterService:
         password = input("Nhập Password: ").strip()
         name = input("Nhập Họ và Tên: ").strip()
 
-        # VÒNG LẶP KIỂM TRA EMAIL HỢP LỆ & KHÔNG TRÙNG LẶP
+        # VÒNG LẶP KIỂM TRA EMAIL HỢP LỆ & KHÔNG TRÙNG LẶP (ĐUÔI @gmail.com)
         while True:
-            email = input("Nhập Email (Ví dụ: abc@gmail.com): ").strip()
-            if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", email):
-                print("❌ Cấu trúc email không hợp lệ (Thiếu @ hoặc sai định dạng)!")
+            email = input("Nhập Email (Bắt buộc định dạng @gmail.com): ").strip()
+            
+            # Khớp định dạng kết thúc bằng @gmail.com
+            if not re.match(r"^[a-zA-Z0-9._%+-]+@gmail\.com$", email):
+                print("❌ Email không hợp lệ! Vui lòng nhập đúng định dạng (Ví dụ: abc@gmail.com).")
+                continue
+            
+            # Kiểm tra trùng lặp không phân biệt chữ hoa/thường
+            is_email_dup = False
+            for adm in self.admin_accounts.values():
+                if adm["email"].lower() == email.lower():
+                    is_email_dup = True
+            for acc in self.accounts.values():
+                if acc["email"].lower() == email.lower():
+                    is_email_dup = True
+            for p in self.gym_manager.data_list:
+                if p.email.lower() == email.lower():
+                    is_email_dup = True
+                    
+            if is_email_dup:
+                print("❌ Email này đã được sử dụng bởi một tài khoản khác! Vui lòng nhập Email khác.")
                 continue
             break
 
@@ -97,14 +112,13 @@ class RegisterService:
         while True:
             phone = input("Nhập Số điện thoại (Gồm 10 số, bắt đầu bằng số 0): ").strip()
             if not re.match(r"^0\d{9}$", phone):
-                print("❌ Số điện thoại không hợp lệ! SĐT của bạn phải có đúng 10 chữ số và bắt đầu bằng số 0.")
+                print("❌ Số điện thoại không hợp lệ! SĐT phải có đúng 10 chữ số và bắt đầu bằng số 0.")
+                continue
+            
+            if self.is_phone_duplicate(phone):
+                print("❌ Số điện thoại này đã được sử dụng! Vui lòng nhập số khác.")
                 continue
             break
-
-        # KIỂM TRA XEM EMAIL HOẶC SĐT VỪA NHẬP CÓ BỊ TRÙNG VỚI AI KHÔNG
-        if self.check_duplicate(email, phone):
-            print("❌ Đăng ký thất bại: Email hoặc Số điện thoại này đã được sử dụng bởi một tài khoản khác!")
-            return
 
         print("\nBạn muốn đăng ký vai trò nào?")
         print("1. Member (Hội viên thường)")

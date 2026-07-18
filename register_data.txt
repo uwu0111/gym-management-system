@@ -1,3 +1,4 @@
 hoangnam|123456|Member|Approved|M01|Nguyen Hoang Nam|nam@gmail.com|0911111111
 tiendung|123456|Trainer|Approved|T01|Tran Tien Dung|dung@gmail.com|0922222222
 minhanh|123456|Member|Pending|M02|Phan Minh Anh|anh@gmail.com|0933333333
+uwu0111|0111|Member|Pending|M03|quan tran|quan@gmail.com|0123456789
