@@ -38,25 +38,21 @@ class GymManager:
                 for line in f:
                     parts = line.strip().split("|")
                     if len(parts) == 5:
-                        code, name, email, phone, experience = parts  # Thay đổi tại đây
+                        code, name, email, phone, experience = parts
                         self.data_list.append(Trainer(code, name, email, phone, experience))
 
     def save_all_files(self):
-        f_member = open(self.get_file_path("member_data.txt"), "w", encoding="utf-8")
-        f_vip = open(self.get_file_path("member_vip_data.txt"), "w", encoding="utf-8")
-        f_trainer = open(self.get_file_path("trainer_data.txt"), "w", encoding="utf-8")
+        with open(self.get_file_path("member_data.txt"), "w", encoding="utf-8") as f_member, \
+             open(self.get_file_path("member_vip_data.txt"), "w", encoding="utf-8") as f_vip, \
+             open(self.get_file_path("trainer_data.txt"), "w", encoding="utf-8") as f_trainer:
 
-        for p in self.data_list:
-            if isinstance(p, MemberVIP):
-                f_vip.write(f"{p.code}|{p.name}|{p.email}|{p.phone}|{p.month}\n")
-            elif isinstance(p, Member):
-                f_member.write(f"{p.code}|{p.name}|{p.email}|{p.phone}|{p.month}\n")
-            elif isinstance(p, Trainer):
-                f_trainer.write(f"{p.code}|{p.name}|{p.email}|{p.phone}|{p.experience}\n")  # Thay đổi tại đây
-
-        f_member.close()
-        f_vip.close()
-        f_trainer.close()
+            for p in self.data_list:
+                if isinstance(p, MemberVIP):
+                    f_vip.write(f"{p.code}|{p.name}|{p.email}|{p.phone}|{p.month}\n")
+                elif isinstance(p, Member):
+                    f_member.write(f"{p.code}|{p.name}|{p.email}|{p.phone}|{p.month}\n")
+                elif isinstance(p, Trainer):
+                    f_trainer.write(f"{p.code}|{p.name}|{p.email}|{p.phone}|{p.experience}\n")
 
     def find_by_code(self, code):
         for p in self.data_list:
@@ -66,7 +62,11 @@ class GymManager:
 
     def get_max_index(self, prefix, register_service_accounts):
         max_idx = 0
+        
+        # SỬA LỖI: Loại trừ mã MV khi tìm max index cho M
         for p in self.data_list:
+            if prefix == "M" and p.code.startswith("MV"):
+                continue
             if p.code.startswith(prefix):
                 try:
                     idx = int(p.code[len(prefix):])
@@ -76,6 +76,8 @@ class GymManager:
                     pass
                     
         for data in register_service_accounts.values():
+            if prefix == "M" and data["code"].startswith("MV"):
+                continue
             if data["code"].startswith(prefix):
                 try:
                     idx = int(data["code"][len(prefix):])
@@ -90,7 +92,7 @@ class GymManager:
         if role == "Member":
             new_p = Member(code, name, email, phone, month=1)
         elif role == "Trainer":
-            new_p = Trainer(code, name, email, phone, experience=1)  # Khởi tạo mặc định 1 năm kinh nghiệm
+            new_p = Trainer(code, name, email, phone, experience=1)
         else:
             return
 

@@ -55,7 +55,7 @@ class Main:
                 print(f"🔹 Email liên hệ: {profile.email}")
                 if hasattr(profile, "month"):
                     print(f"🔹 Gói đăng ký: {profile.month} tháng")
-                elif hasattr(profile, "experience"):  # Sửa đổi tại đây
+                elif hasattr(profile, "experience"):
                     print(f"🔹 Kinh nghiệm: {profile.experience} năm")
             elif choice == "2":
                 break
