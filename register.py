@@ -28,13 +28,6 @@ class RegisterService:
                             "password": pwd, "role": "Admin", "code": "ADMIN",
                             "name": name, "email": email, "phone": phone
                         }
-        else:
-            self.admin_accounts["admin"] = {
-                "password": "admin", "role": "Admin", "code": "ADMIN",
-                "name": "Admin Tối Cao", "email": "admin@gym.com", "phone": "000"
-            }
-            with open(admin_path, "w", encoding="utf-8") as f:
-                f.write("admin|admin|Admin Tối Cao|admin@gym.com|000\n")
 
         reg_path = self.get_file_path("register_data.txt")
         if os.path.exists(reg_path):
