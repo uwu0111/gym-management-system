@@ -53,19 +53,15 @@ class RegisterService:
             for usr, data in self.accounts.items():
                 f.write(f"{usr}|{data['password']}|{data['role']}|{data['status']}|{data['code']}|{data['name']}|{data['email']}|{data['phone']}\n")
 
-    # KIỂM TRA TRÙNG LẶP EMAIL HOẶC SỐ ĐIỆN THOẠI TRÊN HỆ THỐNG
-    def check_duplicate(self, email, phone):
-        # 1. Check dữ liệu phân hệ Admin
+    def is_phone_duplicate(self, phone):
         for adm in self.admin_accounts.values():
-            if adm["email"] == email or adm["phone"] == phone:
+            if adm["phone"] == phone:
                 return True
-        # 2. Check dữ liệu phân hệ Đăng ký tài khoản
         for acc in self.accounts.values():
-            if acc["email"] == email or acc["phone"] == phone:
+            if acc["phone"] == phone:
                 return True
-        # 3. Check dữ liệu gốc bên File Hồ Sơ Gym
         for p in self.gym_manager.data_list:
-            if p.email == email or p.phone == phone:
+            if p.phone == phone:
                 return True
         return False
 
@@ -85,26 +81,41 @@ class RegisterService:
         password = input("Nhập Password: ").strip()
         name = input("Nhập Họ và Tên: ").strip()
 
-        # VÒNG LẶP KIỂM TRA EMAIL HỢP LỆ & KHÔNG TRÙNG LẶP
+        # VÒNG LẶP KIỂM TRA EMAIL
         while True:
-            email = input("Nhập Email (Ví dụ: abc@gmail.com): ").strip()
-            if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", email):
-                print("❌ Cấu trúc email không hợp lệ (Thiếu @ hoặc sai định dạng)!")
+            email = input("Nhập Email (Bắt buộc định dạng @gmail.com): ").strip()
+            
+            if not re.match(r"^[a-zA-Z0-9._%+-]+@gmail\.com$", email):
+                print("❌ Email không hợp lệ! Vui lòng nhập đúng định dạng (Ví dụ: abc@gmail.com).")
+                continue
+            
+            is_email_dup = False
+            for adm in self.admin_accounts.values():
+                if adm["email"].lower() == email.lower():
+                    is_email_dup = True
+            for acc in self.accounts.values():
+                if acc["email"].lower() == email.lower():
+                    is_email_dup = True
+            for p in self.gym_manager.data_list:
+                if p.email.lower() == email.lower():
+                    is_email_dup = True
+                    
+            if is_email_dup:
+                print("❌ Email này đã được sử dụng bởi một tài khoản khác! Vui lòng nhập Email khác.")
                 continue
             break
 
-        # VÒNG LẶP KIỂM TRA SỐ ĐIỆN THOẠI HỢP LỆ & KHÔNG TRÙNG LẶP
+        # VÒNG LẶP KIỂM TRA SĐT
         while True:
             phone = input("Nhập Số điện thoại (Gồm 10 số, bắt đầu bằng số 0): ").strip()
             if not re.match(r"^0\d{9}$", phone):
-                print("❌ Số điện thoại không hợp lệ! SĐT của bạn phải có đúng 10 chữ số và bắt đầu bằng số 0.")
+                print("❌ Số điện thoại không hợp lệ! SĐT phải có đúng 10 chữ số và bắt đầu bằng số 0.")
+                continue
+            
+            if self.is_phone_duplicate(phone):
+                print("❌ Số điện thoại này đã được sử dụng! Vui lòng nhập số khác.")
                 continue
             break
-
-        # KIỂM TRA XEM EMAIL HOẶC SĐT VỪA NHẬP CÓ BỊ TRÙNG VỚI AI KHÔNG
-        if self.check_duplicate(email, phone):
-            print("❌ Đăng ký thất bại: Email hoặc Số điện thoại này đã được sử dụng bởi một tài khoản khác!")
-            return
 
         print("\nBạn muốn đăng ký vai trò nào?")
         print("1. Member (Hội viên thường)")
@@ -143,6 +154,9 @@ class RegisterService:
             if acc["status"] == "Pending":
                 print("❌ Tài khoản của bạn đang được xét duyệt, hãy liên hệ lại với Admin!")
                 return None, None, None
+            elif acc["status"] == "Rejected":
+                print("❌ Tài khoản của bạn đã bị từ chối phê duyệt.")
+                return None, None, None
             return username, acc["role"], acc["code"]
         
         print("❌ Thông tin đăng nhập không chính xác!")
@@ -160,7 +174,7 @@ class RegisterService:
                 acc = self.accounts[usr]
                 print(f"{idx}. Tài khoản: {usr} | Tên: {acc['name']} | Vai trò: {acc['role']} | Mã: {acc['code']}")
 
-            choice = input("\nChọn số thứ tự để duyệt (Gõ '0' để quay lại): ").strip()
+            choice = input("\nChọn số thứ tự để xử lý (Gõ '0' để quay lại): ").strip()
             if choice == "0":
                 break
 
@@ -170,25 +184,28 @@ class RegisterService:
                     target_user = pending_list[sel_idx]
                     acc = self.accounts[target_user]
                     
-                    confirm = input(f"Phê duyệt tài khoản '{target_user}'? (Y/N): ").strip().upper()
-                    if confirm == "Y":
+                    action = input(f"Phê duyệt (Y) / Từ chối (N) tài khoản '{target_user}'? (Y/N): ").strip().upper()
+                    if action == "Y":
                         acc["status"] = "Approved"
                         self.save_accounts()
-                        
                         self.gym_manager.create_profile(
                             acc["role"], acc["code"], acc["name"], acc["email"], acc["phone"]
                         )
                         print(f"✅ Đã kích hoạt tài khoản '{target_user}' thành công!")
+                    elif action == "N":
+                        acc["status"] = "Rejected"
+                        self.save_accounts()
+                        print(f"🚫 Đã từ chối tài khoản '{target_user}'.")
                 else:
                     print("❌ Số thứ tự không nằm trong danh sách!")
             except ValueError:
                 print("❌ Vui lòng nhập ký tự số hợp lệ!")
 
-    def sync_upgrade(self, old_code, new_code):
+    def sync_upgrade(self, old_code, new_code, new_role):
         for data in self.accounts.values():
             if data["code"] == old_code:
                 data["code"] = new_code
-                data["role"] = "MemberVIP"
+                data["role"] = new_role
                 self.save_accounts()
                 print(f"🔄 Hệ thống đã đồng bộ mã đăng nhập mới: {new_code}")
                 return
