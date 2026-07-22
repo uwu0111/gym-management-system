@@ -1,7 +1,12 @@
 hoangnam|123456|Member|Approved|M01|Nguyen Hoang Nam|nam@gmail.com|0911111111
 tiendung|123456|Trainer|Approved|T01|Tran Tien Dung|dung@gmail.com|0922222222
+<<<<<<< HEAD
 minhanh|123456|Member|Approved|M02|Phan Minh Anh|anh@gmail.com|0933333333
 Nkhanh127|Nguyenkhanh127|Trainer|Approved|T02|Nguyễn Nam Khánh|abcd@gmail.com|0909090909
 ádasda|ádasdsad|MemberVIP|Approved|MV02|ádasdas|ascasd@gmai.c|0123456789
 namkhanh|namkhanh|Trainer|Approved|T03|Nguyễn Nam Khánh|namkhanh127@gmail.com|0123345678
 Nkhanh1207|Nguyenkhanh127|Trainer|Approved|T04|Nguyễn Nam Khánh|namkhanhnguyen@gmail.com|0879006938
+=======
+minhanh|123456|Member|Pending|M02|Phan Minh Anh|anh@gmail.com|0933333333
+uwu0111|0111|Member|Pending|M03|quan tran|quan@gmail.com|0123456789
+>>>>>>> b1e1e4673e9953e13f3764830a5b96b44a07c47c
